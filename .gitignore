@@ -43,3 +43,20 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Flutter generated plugin registrants (werden automatisch erzeugt)
+**/GeneratedPluginRegistrant.swift
+**/generated_plugin_registrant.cc
+**/generated_plugin_registrant.dart
+**/generated_plugins.cmake
+
+# Flutter generated xcconfig files
+ios/Flutter/Debug.xcconfig
+ios/Flutter/Release.xcconfig
+macos/Flutter/Flutter-Debug.xcconfig
+macos/Flutter/Flutter-Release.xcconfig
+
+# Generated plugin registrants (auto-generated)
+linux/flutter/generated_plugin_registrant.*
+windows/flutter/generated_plugin_registrant.*
+macos/Flutter/GeneratedPluginRegistrant.swift

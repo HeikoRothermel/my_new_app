@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: 'https://pgmbsorzknyferftkeyb.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBnbWJzb3J6a255ZmVyZnRrZXliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4NTkwMDcsImV4cCI6MjA4MjQzNTAwN30.Vh5GrrX6baHVxunBfCYpG2mBAj66wHssuo00z5Ue5kA',
+  );
   runApp(const MyApp());
 }
+
+final supabase = Supabase.instance.client;
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -67,6 +76,34 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  Future<List<Map<String, dynamic>>> loadProfiles() async {
+  final data = await supabase
+      .from('user')
+      .select('user_id, points')
+      .order('points', ascending: false);
+
+  return List<Map<String, dynamic>>.from(data);
+}
+
+Future<void> insertSnapshot({
+  required String name,
+  required int points,
+}) async {
+  await supabase.from('user').insert({
+    'name': name,
+    'points': points,
+    // 'created_at': DateTime.now().toIso8601String(),
+  });
+}
+
+Future<void> updatePoints(String userId, int newPoints) async {
+  await supabase
+      .from('user')
+      .update({'points': newPoints})
+      .eq('user_id', userId);
+}
+
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -104,6 +141,25 @@ class _MyHomePageState extends State<MyHomePage> {
           // wireframe for each widget.
           mainAxisAlignment: .center,
           children: [
+            FutureBuilder(
+        future: loadProfiles(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final rows = snapshot.data!;
+          return ListView.builder(
+            itemCount: rows.length,
+            itemBuilder: (context, i) {
+              final r = rows[i];
+              return ListTile(
+                title: Text(r['user_id'].toString()),
+                trailing: Text('Points: ${r['points']}'),
+              );
+            },
+          );
+        },
+      ),
             const Text('You have pushed the button this many times:'),
             Text(
               '$_counter',
@@ -113,7 +169,22 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
+        onPressed: () async {
+    try {
+      await insertSnapshot(
+        name: 'game_123',
+        points: 42,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Zwischenstand gespeichert')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Fehler: $e')),
+      );
+    }
+  },
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ),
